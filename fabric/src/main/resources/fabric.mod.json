@@ -3,13 +3,12 @@
   "id": "nexnpc",
   "version": "${version}",
   "name": "NexNPC",
-  "description": "Entités NPC Fabric avec actions et intégration Velocity.",
+  "description": "NPC serveur Fabric basés sur le mannequin natif, avec intégration Velocity.",
   "authors": ["NexNPC"],
   "license": "GPL-3.0-only",
-  "environment": "*",
+  "environment": "server",
   "entrypoints": {
-    "main": ["fr.nexnpc.fabric.NexNpcMod"],
-    "client": ["fr.nexnpc.fabric.client.NexNpcClient"]
+    "main": ["fr.nexnpc.fabric.NexNpcMod"]
   },
   "depends": {
     "fabricloader": ">=0.19.5",

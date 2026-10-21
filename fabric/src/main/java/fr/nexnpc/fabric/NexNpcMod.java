@@ -1,7 +1,9 @@
 package fr.nexnpc.fabric;
 
 import fr.nexnpc.fabric.command.NpcCommands;
-import fr.nexnpc.fabric.entity.NpcEntityTypes;
+import fr.nexnpc.fabric.entity.NpcInteractionHandler;
+import fr.nexnpc.fabric.entity.NpcLookHandler;
+import fr.nexnpc.fabric.entity.NpcEntityLoadHandler;
 import fr.nexnpc.fabric.network.NpcNetworking;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
@@ -14,11 +16,12 @@ public final class NexNpcMod implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        NpcEntityTypes.register();
-        NpcEntityTypes.registerAttributes();
         NpcNetworking.register();
+        NpcInteractionHandler.register();
+        NpcLookHandler.register();
+        NpcEntityLoadHandler.register();
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
                 NpcCommands.register(dispatcher));
-        LOGGER.info("NexNPC initialisé");
+        LOGGER.info("NexNPC serveur initialisé (mannequins natifs minecraft:mannequin)");
     }
 }

@@ -7,11 +7,9 @@ base {
 }
 
 loom {
-    splitEnvironmentSourceSets()
     mods {
         nexnpc {
             sourceSet sourceSets.main
-            sourceSet sourceSets.client
         }
     }
 }

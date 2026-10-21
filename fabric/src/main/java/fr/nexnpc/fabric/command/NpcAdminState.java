@@ -1,6 +1,7 @@
 package fr.nexnpc.fabric.command;
 
-import fr.nexnpc.fabric.entity.NpcEntity;
+import fr.nexnpc.fabric.entity.NpcEntityData;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.permissions.Permissions;
@@ -17,7 +18,7 @@ public final class NpcAdminState {
     private NpcAdminState() {
     }
 
-    public static void select(ServerPlayer player, NpcEntity npc) {
+    public static void select(ServerPlayer player, Entity npc) {
         SELECTED_NPCS.put(player.getUUID(), npc.getUUID());
         CLICK_SELECTION_MODE.remove(player.getUUID());
     }
@@ -40,13 +41,19 @@ public final class NpcAdminState {
         return true;
     }
 
-    public static boolean consumeSelectionClick(ServerPlayer player, NpcEntity npc) {
+    public static boolean consumeSelectionClick(ServerPlayer player, Entity npc) {
         if (!player.permissions().hasPermission(Permissions.COMMANDS_GAMEMASTER)
                 || !CLICK_SELECTION_MODE.remove(player.getUUID())) {
             return false;
         }
         select(player, npc);
-        player.sendSystemMessage(Component.literal("NPC sélectionné : " + npc.getUUID()));
+        player.sendSystemMessage(Component.literal("NPC sélectionné : " + NpcEntityData.getId(npc)));
         return true;
+    }
+
+    public static void replaceSelection(UUID previousEntity, Entity replacement) {
+        SELECTED_NPCS.replaceAll((playerId, selectedId) -> selectedId.equals(previousEntity)
+                ? replacement.getUUID()
+                : selectedId);
     }
 }

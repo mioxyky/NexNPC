@@ -1,89 +1,99 @@
 # NexNPC
 
-NPCs sous forme d'entités Fabric, avec actions de clic droit et intégration Velocity.
+NexNPC crée des NPC à partir de l'entité native `minecraft:mannequin`. Le mod s'exécute côté serveur Fabric ; les transferts vers les autres serveurs passent par le plugin **NexNPC Velocity Integration**.
 
 ## Compatibilité
 
 - Minecraft Java **26.1.2**
-- Fabric Loader **0.19.5 ou plus récent**
-- Fabric API **0.155.3+26.1.2 ou plus récent**
 - Java **25**
-- Plugin compilé contre l'API Velocity **4.3.0**
+- Fabric Loader **0.19.5** ou plus récent
+- Fabric API **0.155.3+26.1.2** ou plus récent
+- Fabric Loom **1.18.4**, Gradle Wrapper **9.7.0**
+- API Velocity **4.3.0**
 
-Les versions Fabric suivent le modèle de projet officiel pour 26.1.2. L'API Velocity 4.3.0 est la dernière version stable publiée et Velocity prend en charge les protocoles Minecraft jusqu'à 26.3 selon sa documentation actuelle.
+Minecraft 26.1.2 contient `EntityType.MANNEQUIN` et son profil natif. NexNPC n'enregistre aucune entité personnalisée : les NPC sont de vrais mannequins vanilla, utilisables par des clients Vanilla.
 
-## Limitation du client vanilla
+## Installation
 
-Un client vanilla ne connaît ni le type d'entité `nexnpc:npc`, ni le renderer qui dessine son modèle de joueur. Le protocole ne permet pas au serveur d'ajouter une nouvelle entrée au registre des entités ou d'associer un skin à une nouvelle entité vivante. Faire apparaître correctement ce NPC sur un client vanilla demanderait un faux joueur et des paquets de joueur, ce que ce projet n'utilise pas.
+1. Placez `NexNPC-Fabric-1.0.0.jar` dans `mods/` sur **chaque backend Fabric** qui héberge des NPC.
+2. Placez `NexNPC-Velocity-1.0.0.jar` dans `plugins/` sur le proxy Velocity.
+3. Redémarrez les serveurs et le proxy.
 
-**Le mod Fabric doit donc être installé sur le serveur et sur chaque client.** Le client utilise une entité Fabric et un modèle joueur avec les couches de skin habituelles. La géométrie est le modèle standard à bras larges. Le skin du pseudo est chargé au premier affichage depuis les services de profils et de textures de Mojang ; si ces services ne répondent pas, une texture de secours est affichée.
+Les clients n'ont pas besoin d'installer NexNPC : mannequin, nom, profil de joueur et rotations utilisent le protocole et le rendu vanilla. Aucun faux joueur ni renderer client NexNPC n'est créé. La résolution du profil de skin peut afficher temporairement le skin par défaut et dépend de l'accès du client aux services de profils Minecraft.
+
+Le plugin Velocity est facultatif pour les NPC qui n'utilisent pas d'action de transfert. Les suggestions de serveurs, les transferts et leurs messages de diagnostic nécessitent le plugin.
 
 ## Compilation
 
-À la racine du dépôt, avec Java 25 :
+Avec Java 25, à la racine du dépôt :
 
 ```powershell
-.\gradlew.bat build
+.\gradlew.bat clean build --console=plain
 ```
 
-Les JAR livrables sont :
+Les JAR livrables sont générés dans :
 
 - `fabric/build/libs/NexNPC-Fabric-1.0.0.jar`
 - `velocity/build/libs/NexNPC-Velocity-1.0.0.jar`
 
-Le JAR Fabric contient le code commun et le renderer client. Le JAR Velocity est autonome et compile l'API en `compileOnly`.
+## Commandes
 
-## Installation
-
-1. Déposez `NexNPC-Fabric-1.0.0.jar` dans `mods/` sur chaque backend Fabric qui héberge des NPCs.
-2. Installez le même mod dans `mods/` des clients qui se connectent à ces serveurs.
-3. Déposez `NexNPC-Velocity-1.0.0.jar` dans le dossier `plugins/` de Velocity.
-4. Ajoutez les backends à la configuration Velocity comme d'habitude. Le mod demande la liste directement au proxy ; aucune liste de serveurs n'est à maintenir dans un fichier NexNPC.
-
-Pour le forwarding moderne vers des backends Fabric, installez aussi [FabricProxy-Lite](https://modrinth.com/mod/fabricproxy-lite) sur chaque backend et configurez-le selon la documentation Velocity. NexNPC n'utilise pas le secret de forwarding pour son propre canal.
-
-Les commandes Fabric restent disponibles sans plugin Velocity, sauf le transfert et les suggestions de serveurs.
-
-## Commandes administrateur
-
-Toutes les commandes `/npc` exigent le niveau de permission serveur 2 (opérateur).
+Les commandes de configuration nécessitent la permission opérateur Minecraft `COMMANDS_GAMEMASTER` (niveau 2). Les joueurs sans OP peuvent utiliser les NPC.
 
 | Commande | Effet |
 |---|---|
-| `/npc create <nom>` | Crée et sélectionne un NPC à la position de l'administrateur. |
-| `/npc select <id>` | Sélectionne un NPC par l'UUID donné dans `/npc list`. |
-| `/npc select` | Active ou désactive le mode de sélection par clic droit. Le premier NPC cliqué est sélectionné. |
+| `/npc create <id>` | Crée un mannequin immobile, nomme le NPC avec son ID et le sélectionne. |
+| `/npc select <id>` | Sélectionne le NPC par son ID lisible. L'UUID technique reste interne. |
+| `/npc select` | Active ou désactive la sélection par clic droit sur un NPC NexNPC. |
 | `/npc remove` | Supprime le NPC sélectionné. |
-| `/npc list` | Liste les NPC chargés, leur UUID, dimension et position. |
-| `/npc skin <pseudo>` | Définit le pseudo de skin du NPC sélectionné. |
-| `/npc action command <commande>` | Remplace l'action par une commande, exécutée avec les permissions du joueur qui clique. |
-| `/npc action server <serveur>` | Remplace l'action par un transfert vers le serveur Velocity. Tab demande la liste au proxy, avec un cache de 20 secondes. |
-| `/npc action none` | Efface l'action. |
-| `/npc look true` | Fait regarder le joueur le plus proche dans un rayon de 16 blocs. |
-| `/npc look false` | Garde l'orientation du NPC. C'est la valeur par défaut. |
+| `/npc list` | Liste tous les IDs enregistrés, en signalant les NPC dans des chunks déchargés. |
+| `/npc rename <nom>` | Modifie le nom affiché sans changer l'ID. Accepte `&0`–`&f`, `&k`–`&o`, `&r` et `&#RRGGBB`. |
+| `/npc change id <nouvel_id>` | Modifie l'ID en conservant le nom, le skin et l'action. Les IDs sont uniques, sans distinction de casse. |
+| `/npc skin <pseudo>` | Définit le profil de joueur du mannequin sélectionné. |
+| `/npc action add command "<commande>"` | Définit une commande exécutée par la console quand un joueur clique. |
+| `/npc action add server <serveur>` | Définit un transfert vers un serveur Velocity. La touche Tab demande la liste au proxy. |
+| `/npc action none` | Supprime l'action actuelle. |
+| `/npc look true` | Oriente le corps et la tête vers le joueur vivant le plus proche dans un rayon de 16 blocs. |
+| `/npc look false` | Désactive le regard automatique. Désactivé par défaut. |
 
-La sélection reste propre à la session de l'administrateur. Les NPC, eux, sont enregistrés dans les sauvegardes normales des entités et des chunks : position, nom, pseudo de skin, action et réglage de regard sont enregistrés dans leurs données NBT. Aucun fichier de NPC séparé n'est créé.
+Les anciennes formes `/npc action command <commande>` et `/npc action server <serveur>` restent disponibles.
 
-## Sécurité et Plugin Messaging
+Exemples :
 
-Le canal dédié est `nexnpc:proxy`. Velocity intercepte tous les messages de ce canal et les marque comme traités avant toute analyse. Seuls les messages dont la source est une connexion backend Velocity sont analysés ; les messages reçus directement d'un joueur sont abandonnés. Le joueur est obtenu depuis la connexion backend, jamais depuis un UUID transmis.
+```mcfunction
+/npc create home
+/npc rename &9! &cHome &9!
+/npc change id home1
+/npc action add command "tp %player% 5 45 6"
+/npc action add command "gamemode survival %player%"
+```
 
-Pour une demande de transfert, Velocity vérifie le serveur backend actuellement associé au joueur, le format et l'existence exacte du serveur cible, puis crée la demande de connexion. Les requêtes serveur trop fréquentes sont limitées. Les demandes de liste renvoient uniquement les serveurs configurés dans Velocity. Leur réponse comporte un nonce aléatoire à usage unique afin qu'un client ne puisse pas fabriquer une liste en envoyant le même payload au serveur Fabric. Ce nonce est une donnée de corrélation éphémère, pas un secret applicatif partagé.
+`%player%` est remplacé par le pseudo du joueur qui a cliqué. Le pseudo Minecraft n'accepte ni espace ni séparateur de commande. Les commandes sont limitées à une ligne et à 256 caractères ; NexNPC ne donne jamais temporairement le statut OP au joueur.
 
-Velocity fait confiance aux backends qu'il connaît. Protégez donc les ports des serveurs backend afin que les joueurs ne puissent pas les contourner et ne faites pas fonctionner de backend non fiable dans le même proxy. `forwarding.secret` n'est ni lu ni réutilisé par NexNPC.
+## Persistance et skins
 
-## Détails
+La position, le nom coloré, le profil, l'immobilité, l'action et le réglage du regard sont enregistrés avec les données natives du mannequin et les tags NBT de l'entité. Les changements de profil sont appliqués au champ natif `profile`, qui est synchronisé par Minecraft avec les joueurs suivant l'entité. Aucun fichier JSON distinct ne contient la configuration des NPC.
 
-- Le NPC n'a pas d'IA, de gravité ou de déplacement automatique. Il est invulnérable et non poussable.
-- Chaque clic est limité à une action par NPC et par joueur pendant 8 ticks.
-- La commande est exécutée comme le joueur qui clique, jamais comme la console.
-- Les noms de serveurs sont validés une seconde fois par Velocity avant tout transfert.
-- Le téléchargement du skin se fait depuis le client et est mis en cache en mémoire. Il nécessite une connexion aux services Mojang.
-- Le code n'intègre aucun extrait de Citizens2.
+Minecraft ne publie pas de setters pour le profil ou le champ `immovable` de son mannequin. NexNPC met à jour ces champs via la lecture/écriture de données d'entité natives de Minecraft, ce qui garde le même type d'entité et le chemin de synchronisation vanilla.
 
-## Sources de compatibilité
+Minecraft conserve aussi un petit `SavedData` nommé `nexnpc:npc_ids` qui réserve les IDs des NPC, y compris ceux dont le chunk est déchargé. La configuration propre à chaque NPC reste dans son entité. `/npc remove` libère la réservation.
 
-- [Guide Fabric 26.1.2 pour créer une entité](https://docs.fabricmc.net/26.1.2/develop/entities/first-entity)
-- [Guide Fabric de mise à niveau vers 26.1](https://docs.fabricmc.net/26.1.2/develop/porting)
-- [Messages de plugin Velocity et validation de provenance](https://docs.papermc.io/velocity/dev/plugin-messaging/)
-- [Compatibilité des protocoles Velocity](https://docs.papermc.io/velocity/server-compatibility/)
+Les mannequins NexNPC déjà sauvegardés restent des entités vanilla et sont reconnus au chargement de leur chunk. Les anciennes entités personnalisées `nexnpc:npc` des versions historiques ne sont plus prises en charge : garder leur type enregistré dans le registre des entités oblige Fabric à synchroniser cette entrée vers les clients, ce qui est incompatible avec l'objectif Vanilla sans mod. Sauvegardez le monde avant de remplacer une ancienne version et vérifiez les logs de migration de Minecraft au premier démarrage.
+
+## Regard et interactions
+
+Le callback Fabric consomme le clic droit sur un NPC NexNPC côté serveur et ignore le mannequin vanilla non géré par NexNPC. Les attaques sont annulées pour les NPC gérés. Une interaction est limitée à une action par joueur et par NPC toutes les 8 ticks. Le réglage du regard applique les rotations serveur du corps, de la tête et de la vue ; le suivi d'entité vanilla les transmet aux clients.
+
+## Intégration Velocity
+
+Le canal `nexnpc:proxy` utilise la version 2 du protocole NexNPC. Pour chaque message, le plugin Velocity marque le canal comme traité puis accepte les requêtes uniquement d'une connexion `ServerConnection` qui est encore le backend courant du joueur. Il déduit le joueur de cette connexion ; aucun UUID ou nom de joueur transmis par le mod n'est utilisé pour identifier la personne à transférer.
+
+Pour un transfert, le proxy vérifie le format du nom, l'existence exacte du serveur dans sa propre configuration, le backend actuel et une limite de fréquence. Il envoie les erreurs de destination indisponible au backend. Les réponses aux requêtes de liste utilisent un nonce aléatoire à usage unique. Les messages envoyés directement par un client sont interceptés et rejetés. Le protocole ne lit ni ne réutilise `forwarding.secret`, qui reste réservé au forwarding Velocity.
+
+Protégez les ports des backends comme recommandé pour votre configuration de forwarding : Velocity fait confiance aux connexions backend qu'il accepte.
+
+## Vérification
+
+La compilation Gradle des modules Fabric et Velocity est la vérification automatisée disponible dans ce dépôt. Le lancement de développement `:fabric:runServer` a chargé Minecraft 26.1.2, Fabric Loader 0.19.5 et NexNPC et a exécuté l'initialisation côté serveur ; le serveur s'est ensuite arrêté car aucun `eula.txt` accepté n'existait dans le répertoire de lancement. Les interactions en jeu, le regard visible par un client vanilla et un transfert entre vrais backends n'ont donc pas pu être validés ici.
+
+NexNPC n'inclut aucun code de Citizens2.
