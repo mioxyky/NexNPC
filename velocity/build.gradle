@@ -1,0 +1,37 @@
+plugins {
+    id 'java'
+}
+
+base {
+    archivesName = 'NexNPC-Velocity'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'papermc'
+        url = 'https://repo.papermc.io/repository/maven-public/'
+    }
+}
+
+dependencies {
+    compileOnly "com.velocitypowered:velocity-api:${velocity_api_version}"
+}
+
+processResources {
+    def pluginVersion = project.version.toString()
+    inputs.property 'version', pluginVersion
+    filesMatching('velocity-plugin.json') {
+        expand 'version': pluginVersion
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 25
+    options.encoding = 'UTF-8'
+}

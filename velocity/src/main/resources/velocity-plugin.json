@@ -1,0 +1,7 @@
+{
+  "id": "nexnpc-velocity",
+  "name": "NexNPC Velocity",
+  "version": "${version}",
+  "main": "fr.nexnpc.velocity.NexNpcVelocityPlugin",
+  "authors": ["NexNPC"]
+}

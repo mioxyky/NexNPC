@@ -1,0 +1,4 @@
+allprojects {
+    group = project.findProperty('maven_group') ?: 'fr.nexnpc'
+    version = project.findProperty('mod_version') ?: '1.0.0'
+}

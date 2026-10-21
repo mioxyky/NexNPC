@@ -1,0 +1,8 @@
+.gradle/
+build/
+fabric/build/
+velocity/build/
+fabric/run/
+velocity/run/
+.idea/
+*.iml
